@@ -190,7 +190,7 @@ void toss_handle(void) {
     if (toss_frame == 4) {
       toss_frame = 0;
     }
-    
+
     return;
   }
 
@@ -283,7 +283,7 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
   }
 
   if (keycode > 99 && keycode != 0) {
-    keycode = 99;
+    keycode = 999;
     name = '?';
   }
 
@@ -312,20 +312,15 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
 void oled_snow(uint8_t quantity) {
   for (size_t i = 0; i < quantity; i++)
   {
-    oled_write_pixel(rand() % 129, rand() % 33, (rand() % 3 ) == 2);
+    oled_write_pixel(rand() % 129, rand() % 33, (rand() % 2) == 1);
   }
 }
 
 void oled_task_user(void) {
   if (!is_keyboard_master()) {
-    oled_set_brightness(0);
     oled_snow(50);
 
     return;
-  }
-
-  if (0 == type_count) {
-    oled_set_brightness(0);
   }
 
   if (!oled_show) {
@@ -335,7 +330,7 @@ void oled_task_user(void) {
   }
 
   if (timer_elapsed(scroll_resume_timer) > 10000 || oled_fade) {
-    oled_snow(10);
+    oled_snow(50);
     oled_fade = true;
 
     return;
@@ -404,7 +399,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         oled_write_pixel(y, x, false);
       }
     }
-    
+
     oled_fade = false;
   }
 

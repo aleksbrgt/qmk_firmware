@@ -22,4 +22,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define IGNORE_MOD_TAP_INTERRUPT
 
-#define COMBO_COUNT 3
+#define COMBO_COUNT 2
