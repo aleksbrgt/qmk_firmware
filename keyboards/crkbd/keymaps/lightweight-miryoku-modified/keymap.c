@@ -391,18 +391,6 @@ void handle_toss(uint16_t keycode) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   scroll_resume_timer = timer_read();
 
-  if (oled_fade) {
-    for (size_t y = 0; y < 128; y++)
-    {
-      for (size_t x = 0; x < 32; x++)
-      {
-        oled_write_pixel(y, x, false);
-      }
-    }
-
-    oled_fade = false;
-  }
-
   if (record->event.pressed) {
     type_count++;
     oled_scroll_off();
