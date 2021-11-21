@@ -18,7 +18,8 @@ enum custom_keycodes {
     OLED_SC_DN,
     OLED_TOGGLE,
     NOTHING,
-    KC_COIN_TOSS
+    KC_COIN_TOSS,
+    KC_GAME_OF_LIFE,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -140,20 +141,11 @@ combo_t key_combos[COMBO_COUNT] = {
 uint32_t type_count = 0;
 uint16_t scroll_resume_timer;
 
-bool oled_fade = false;
 bool oled_should_increase_brightness = false;
 bool oled_should_decrease_brightness = false;
 bool oled_show = true;
 
 bool capslock = false;
-
-uint16_t toss_timer;
-bool toss_trigger = false;
-bool toss_show_result = false;
-bool toss_heads = false;
-bool toss_result = false;
-uint8_t toss_frame = 0;
-char toss_throw_chars[4] = {'|', '/', '-', '\\'};
 
 char keylog_str[24] = "CxR: 00x00  000:    ";
 
@@ -175,6 +167,14 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 
   return rotation;
 }
+
+uint16_t toss_timer;
+bool toss_trigger = false;
+bool toss_show_result = false;
+bool toss_heads = false;
+bool toss_result = false;
+uint8_t toss_frame = 0;
+char toss_throw_chars[4] = {'|', '/', '-', '\\'};
 
 void toss_handle(void) {
   if (!toss_trigger) {
@@ -266,7 +266,7 @@ void oled_render_line_3(void) {
 void oled_render_line_4(void) {
   char str[128];
 
-  sprintf(str, "Old:  %03d   WPM: %03d", oled_get_brightness(), get_current_wpm());
+  sprintf(str, "Old:  %03d   WPM: %03d ", oled_get_brightness(), get_current_wpm());
   oled_write(str, false);
 }
 
@@ -324,14 +324,14 @@ void oled_task_user(void) {
   }
 
   if (!oled_show) {
+    oled_clear();
     oled_off();
 
     return;
   }
 
-  if (timer_elapsed(scroll_resume_timer) > 10000 || oled_fade) {
+  if (timer_elapsed(scroll_resume_timer) > 10000) {
     oled_snow(50);
-    oled_fade = true;
 
     return;
   }
@@ -388,12 +388,80 @@ void handle_toss(uint16_t keycode) {
   }
 }
 
+bool run_game_of_life = false;
+bool current_grid [128][32];
+bool next_grid [128][32];
+uint16_t generation = 0;
+
+void draw_grid(void) {
+  char frame[512];
+  uint8_t bit_count = 0;
+  uint16_t byte_count = 0;
+
+  for (size_t x = 0; x < 128; x++)
+  {
+    for (size_t y = 0; y < 32; y++)
+    {
+      if (bit_count == 8) {
+        byte_count++;
+        bit_count = 0;
+      }
+
+      frame[byte_count] |= (next_grid[x][y]) << bit_count;
+
+      bit_count++;
+    }
+  }
+
+  oled_write_raw_P(PSTR(frame), 512);
+}
+
+void seed_grid(void)
+{
+  for (size_t x = 0; x < 128; x++)
+  {
+    for (size_t y = 0; y < 32; y++)
+    {
+      next_grid[x][y] = 1 == rand() % 10;
+    }
+  }
+}
+
+void step(void)
+{
+  strncpy(next_grid, current_grid, 128);
+}
+
+void game_of_life(void)
+{
+  if (generation == 0) {
+    seed_grid();
+    draw_grid();
+
+    return;
+  }
+
+  step();
+  draw_grid();
+}
+
+void handle_game_of_life(uint16_t keycode) {
+  if (KC_GAME_OF_LIFE == keycode) {
+    run_game_of_life = !run_game_of_life;
+
+    return;
+  }
+
+  if (run_game_of_life) {
+    game_of_life();
+  }
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   scroll_resume_timer = timer_read();
-
+  
   if (record->event.pressed) {
     type_count++;
-    oled_scroll_off();
     set_keylog(keycode, record);
     oled_update_settings(keycode);
     update_status(keycode);

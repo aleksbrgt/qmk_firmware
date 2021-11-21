@@ -24,5 +24,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NO_ACTION_TAPPING
 #define NO_ACTION_ONESHOT
 #define IGNORE_MOD_TAP_INTERRUPT
-#define TAPPING_FORCE_HOLD
 #define NO_USB_STARTUP_CHECK
+

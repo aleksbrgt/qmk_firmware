@@ -1,18 +1,25 @@
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 
+#define frame_size 512
+#define logo_glitch_count 5
+#define logo_glitch_dirty_count 2
+#define text_glitch_count 7
+#define text_glitch_dirty_count 3
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {};
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
   return OLED_ROTATION_270;
 }
 
-bool glitch = true;
-uint8_t frame_count = 15;
-bool show_text = true;
-uint16_t arasaka_timer;
+static bool glitch = true;
+static bool dirty = false;
+static uint8_t frame_count = 15;
+static bool show_text = true;
+static uint16_t arasaka_timer;
 
-static const char PROGMEM logo_clean[512] = {
+static const char PROGMEM logo_clean[frame_size] = {
   0x00, 0x00, 0x80, 0xc0, 0x60, 0x30, 0x18, 0x0c, 0x0c, 0x06, 0x06, 0xc3, 0xe3, 0xf3, 0xfb, 0xfb, 
   0xfb, 0xfb, 0xf3, 0xe3, 0xc3, 0x06, 0x06, 0x0c, 0x0c, 0x18, 0x30, 0x60, 0xc0, 0x80, 0x00, 0x00, 
   0xf8, 0xfe, 0x07, 0xe1, 0xf0, 0xf8, 0xfc, 0xfc, 0xfc, 0xfc, 0xf8, 0xf3, 0xe7, 0x0f, 0x1f, 0xff, 
@@ -47,7 +54,7 @@ static const char PROGMEM logo_clean[512] = {
   0x1a, 0x1f, 0x15, 0x1f, 0x12, 0x1f, 0x15, 0x1f, 0x12, 0x1e, 0x15, 0x1f, 0x00, 0x00, 0x00, 0x00
 };
 
-static const char PROGMEM logo_glitch[5][512] = {
+static const char PROGMEM logo_glitch[logo_glitch_count][frame_size] = {
   {
     // frame 1
     0x00, 0x00, 0x20, 0x30, 0x98, 0xc8, 0x48, 0x02, 0x02, 0x03, 0x23, 0x33, 0x3b, 0xfb, 0xfb, 0xfb, 
@@ -225,7 +232,7 @@ static const char PROGMEM logo_glitch[5][512] = {
   }
 };
 
-static const char PROGMEM logo_glitch_dirty[5][512] = {
+static const char PROGMEM logo_glitch_dirty[logo_glitch_dirty_count][frame_size] = {
   {
     // frame 1
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0xa0, 0x80, 0x80, 0x80, 0x80, 0xf8, 0x7c, 
@@ -298,7 +305,7 @@ static const char PROGMEM logo_glitch_dirty[5][512] = {
   }
 };
 
-static const char PROGMEM text_clean[512] = {
+static const char PROGMEM text_clean[frame_size] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0xe0, 0xf0, 0xf8, 0x7c, 0x3e, 0x1f, 0x1f, 0x1f, 
   0x1c, 0x1e, 0x1f, 0x1f, 0x1f, 0x9f, 0xdf, 0x9f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc3, 0x3f, 0xff, 0xff, 0xf8, 0xe0, 0xc0, 0xc0, 0xc0, 
@@ -333,7 +340,7 @@ static const char PROGMEM text_clean[512] = {
   0xf8, 0x78, 0x7c, 0x3f, 0x3f, 0x1f, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static const char PROGMEM text_glitch[7][512] = {
+static const char PROGMEM text_glitch[text_glitch_count][frame_size] = {
   {
     // frame 1
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0xe0, 0xf0, 0xf8, 0x7c, 0x3e, 0x1f, 0x1f, 0x1f, 
@@ -581,7 +588,7 @@ static const char PROGMEM text_glitch[7][512] = {
   }
 };
 
-static const char PROGMEM text_glitch_dirty[5][512] = {
+static const char PROGMEM text_glitch_dirty[text_glitch_dirty_count][frame_size] = {
   {
     // frame 1
     0x00, 0x00, 0x00, 0x40, 0x60, 0x70, 0x78, 0x78, 0x38, 0x18, 0x98, 0x9c, 0x9e, 0x9f, 0x1f, 0x1f, 
@@ -691,48 +698,54 @@ static const char PROGMEM text_glitch_dirty[5][512] = {
 
 void arasaka_text_clean(void)
 {
-  oled_write_raw_P(text_clean, 512);
-}
-
-void arasaka_text_glitch(void)
-{
-  uint8_t frame = rand() % 9;
-
-  if (frame < 7) {
-    oled_write_raw_P(text_glitch[frame], 512);
-
-    return;
-  }
-
-  oled_write_raw_P(text_glitch_dirty[frame - 7], 512);
+  oled_write_raw_P(text_clean, frame_size);
 }
 
 void arasaka_text_glitch_dirty(void)
 {
-  oled_write_raw_P(text_glitch_dirty[rand() % 3], 512);
+  oled_write_raw_P(text_glitch_dirty[rand() % text_glitch_dirty_count], frame_size);
 }
 
-void arasaka_logo_clean(void)
+void arasaka_text_glitch(bool can_be_dirty)
 {
-    oled_write_raw_P(logo_clean, 512);
-}
+  uint8_t frame = can_be_dirty
+    ? rand() % (text_glitch_count + text_glitch_dirty_count)
+    : rand() % text_glitch_count
+  ;
 
-void arasaka_logo_glitch(void)
-{
-  uint8_t frame = rand() % 7;
-
-  if (frame < 5) {
-    oled_write_raw_P(logo_glitch[frame], 512);
+  if (frame < text_glitch_count) {
+    oled_write_raw_P(text_glitch[frame], frame_size);
 
     return;
   }
 
-  oled_write_raw_P(logo_glitch_dirty[frame - 5], 512);
+  arasaka_text_glitch_dirty();
+}
+
+void arasaka_logo_clean(void)
+{
+    oled_write_raw_P(logo_clean, frame_size);
 }
 
 void arasaka_logo_glitch_dirty(void)
 {
-  oled_write_raw_P(logo_glitch_dirty[rand() % 2], 512);
+  oled_write_raw_P(logo_glitch_dirty[rand() % logo_glitch_dirty_count], frame_size);
+}
+
+void arasaka_logo_glitch(bool can_be_dirty)
+{
+  uint8_t frame = can_be_dirty 
+    ? rand() % (logo_glitch_count + logo_glitch_dirty_count)
+    : rand() % logo_glitch_count
+  ;
+
+  if (frame < logo_glitch_count) {
+    oled_write_raw_P(logo_glitch[frame], frame_size);
+
+    return;
+  }
+
+  arasaka_logo_glitch_dirty();
 }
 
 void arasaka_draw(void) {
@@ -745,13 +758,13 @@ void arasaka_draw(void) {
   }
 
   if (timer < 250) {
-    show_text ? arasaka_text_glitch() : arasaka_logo_glitch();
+    show_text ? arasaka_text_glitch(true) : arasaka_logo_glitch(true);
 
     return;
   }
 
   if (timer > 9750 && timer < 9850) {
-    show_text ? arasaka_text_glitch() : arasaka_logo_glitch();
+    show_text ? arasaka_text_glitch(true) : arasaka_logo_glitch(true);
 
     return;
   }
@@ -769,28 +782,27 @@ void arasaka_draw(void) {
 
   if (glitch && 0 != frame_count) {
     frame_count--;
-    if (show_text) {
-      arasaka_text_glitch();
-
-      return;
-    }
-
-    arasaka_logo_glitch();
+    show_text ? arasaka_text_glitch(true) : arasaka_logo_glitch(true);
 
     return;
   }
 
   glitch = false;
+  dirty = false;
 
-  if (show_text) {
-    arasaka_text_clean();
-  } else {
-    arasaka_logo_clean();
+  show_text ? arasaka_text_clean() : arasaka_logo_clean();
+
+  if (1 == rand() % 60) {
+    glitch = true;
+    frame_count = 1 + rand() % 4;
+
+    return;
   }
 
-  if (1 == rand() % 50) {
+  if (1 == rand() % 60) {
     glitch = true;
-    frame_count = 2 + rand() % 10;
+    frame_count = 1 + rand() % 10;
+    dirty = frame_count > 5;
   }
 }
 
