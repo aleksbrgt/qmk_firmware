@@ -459,7 +459,7 @@ void handle_game_of_life(uint16_t keycode) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   scroll_resume_timer = timer_read();
-  
+
   if (record->event.pressed) {
     type_count++;
     set_keylog(keycode, record);
