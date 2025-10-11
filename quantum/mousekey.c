@@ -394,7 +394,7 @@ void mousekey_on(uint8_t code) {
 #    if defined(MOUSEKEY_OVERLAP_RESET) && !defined(MOUSEKEY_INERTIA)
     // If mouse report is not zero, the current mousekey press is overlapping
     // with another. Restart acceleration for smoother directional transition.
-    if (mouse_report.x || mouse_report.y || mouse_report.h || mouse_report.v) {
+    if (mouse_report.x || mouse_report.y || mouse_report.h || mouse_report.v || mouse_report.buttons) {
 #        ifdef MK_KINETIC_SPEED
         mouse_timer = timer_read() - MOUSEKEY_OVERLAP_INTERVAL;
 #        else
